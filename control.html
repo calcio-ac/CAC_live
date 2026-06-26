@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CAC Live – Match Controller</title>
+  <style>
+    :root {
+      --green: #6BDB58;
+      --green-dark: #4db83e;
+      --bg: #0d0d0d;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: #2e2e2e;
+      --text: #f0f0f0;
+      --muted: #888;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Arial', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--green);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    header svg { flex-shrink: 0; }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    .live-dot {
+      width: 10px; height: 10px;
+      background: #ff3b30;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #ff3b30;
+      animation: pulse 1.4s infinite;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .live-label {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ff3b30;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 960px;
+      margin: 32px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Team names ── */
+    .team-inputs { display: flex; flex-direction: column; gap: 14px; }
+
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 10px 14px;
+      letter-spacing: 1px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: var(--green); }
+
+    /* ── Score controls ── */
+    .score-section { grid-column: span 2; }
+
+    .scoreline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 28px;
+    }
+
+    .team-score-block { text-align: center; }
+
+    .team-score-name {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .score-value {
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--text);
+      min-width: 80px;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .score-sep {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--border);
+      line-height: 1;
+    }
+
+    .btn-score {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      border: none;
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-plus {
+      background: var(--green);
+      color: #000;
+    }
+    .btn-plus:hover { background: var(--green-dark); transform: scale(1.08); }
+
+    .btn-minus {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-minus:hover { background: #2a2a2a; color: #fff; }
+
+    .btn-reset-score {
+      display: block;
+      margin: 0 auto;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 8px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-reset-score:hover { border-color: #ff3b30; color: #ff3b30; }
+
+    /* ── Timer ── */
+    .timer-section {}
+
+    .timer-display-ctrl {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-btns {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-start  { background: var(--green); color: #000; }
+    .btn-start:hover  { background: var(--green-dark); }
+
+    .btn-pause  { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-pause:hover  { background: #2e2e2e; }
+
+    .btn-reset  { background: transparent; color: #ff3b30; border: 1px solid #ff3b30; }
+    .btn-reset:hover  { background: rgba(255,59,48,0.1); }
+
+    /* ── Period selector ── */
+    .period-section {}
+
+    .period-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-period {
+      padding: 11px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .btn-period:hover { border-color: var(--green); color: var(--text); }
+    .btn-period.active { background: var(--green); color: #000; border-color: var(--green); }
+
+    /* ── Visibility toggles ── */
+    .visibility-section { grid-column: span 2; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+
+    .toggle-label { font-size: 14px; font-weight: 600; }
+    .toggle-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .toggle input { display: none; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--muted);
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--green); border-color: var(--green); }
+    .toggle input:checked + .toggle-slider::after {
+      transform: translateX(22px);
+      background: #000;
+    }
+
+    /* ── Preview bar ── */
+    #preview-bar {
+      max-width: 960px;
+      margin: 0 auto 32px;
+      padding: 0 24px;
+    }
+
+    .preview-card {
+      background: #000;
+      border-radius: 10px;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    .prev-team {
+      background: rgba(255,255,255,0.06);
+      padding: 10px 28px;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .prev-team-name {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .prev-score-block {
+      background: var(--green);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prev-score {
+      color: #000;
+      font-size: 32px;
+      font-weight: 900;
+    }
+
+    .prev-sep { color: rgba(0,0,0,0.4); font-size: 24px; font-weight: 900; }
+
+    /* ── Status bar ── */
+    #status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    #status-bar span.ok { color: var(--green); font-weight: 700; }
+    #status-bar span.info { color: var(--muted); }
+
+    .spacer { flex: 1; }
+
+    a.twitch-link {
+      color: #a970ff;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    a.twitch-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg xmlns="http://www.w3.org/2000/svg" width="70" height="36" viewBox="0 0 868 440">
+    <path fill="#ffffff" d="M143 67 L47 161 L141 256 L168 230 L100 161 L168 93 Z"/>
+    <path fill="#6BDB58" fill-rule="evenodd" d="M208 76 L208 327 L247 327 L247 183 L249 181 L635 181 L637 183 L637 327 L675 327 L675 75 Z M247 116 L251 113 L635 113 L637 115 L637 141 L635 143 L249 143 L247 141 Z"/>
+    <path fill="#ffffff" d="M741 67 L716 94 L783 160 L716 229 L742 256 L836 160 Z"/>
+  </svg>
+  <div>
+    <h1>Match Controller</h1>
+    <p>Controls the OBS scoreboard overlay in real time</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+    <div class="live-dot"></div>
+    <span class="live-label">LIVE</span>
+  </div>
+</header>
+
+<!-- Scoreboard preview -->
+<div id="preview-bar" style="margin-top:24px;">
+  <div style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Overlay Preview</div>
+  <div class="preview-card">
+    <div class="prev-team">
+      <div class="prev-team-name" id="prev-home-name">CAC</div>
+    </div>
+    <div class="prev-score-block">
+      <span class="prev-score" id="prev-home-score">0</span>
+      <span class="prev-sep">–</span>
+      <span class="prev-score" id="prev-away-score">0</span>
+    </div>
+    <div class="prev-team">
+      <div class="prev-team-name" id="prev-away-name">AWAY</div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- Team names -->
+  <div class="card">
+    <div class="card-title">Home Team</div>
+    <div class="team-inputs">
+      <div>
+        <label>Team Name</label>
+        <input type="text" id="home-team-input" value="CAC" maxlength="20" placeholder="Home team name">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Away Team</div>
+    <div class="team-inputs">
+      <div>
+        <label>Team Name</label>
+        <input type="text" id="away-team-input" value="AWAY" maxlength="20" placeholder="Away team name">
+      </div>
+    </div>
+  </div>
+
+  <!-- Score -->
+  <div class="card score-section">
+    <div class="card-title">Score</div>
+    <div class="scoreline">
+      <div class="team-score-block">
+        <div class="team-score-name" id="score-home-label">CAC</div>
+        <div class="score-row">
+          <button class="btn-score btn-minus" onclick="adjustScore('home', -1)">−</button>
+          <div class="score-value" id="home-score-val">0</div>
+          <button class="btn-score btn-plus" onclick="adjustScore('home', 1)">+</button>
+        </div>
+      </div>
+      <div class="score-sep">–</div>
+      <div class="team-score-block">
+        <div class="team-score-name" id="score-away-label">AWAY</div>
+        <div class="score-row">
+          <button class="btn-score btn-minus" onclick="adjustScore('away', -1)">−</button>
+          <div class="score-value" id="away-score-val">0</div>
+          <button class="btn-score btn-plus" onclick="adjustScore('away', 1)">+</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn-reset-score" onclick="resetScore()">Reset Score</button>
+  </div>
+
+  <!-- Timer -->
+  <div class="card timer-section">
+    <div class="card-title">Match Timer</div>
+    <div class="timer-display-ctrl" id="timer-ctrl-display">00:00</div>
+    <div class="timer-btns">
+      <button class="btn btn-start" id="btn-start" onclick="startTimer()">Start</button>
+      <button class="btn btn-pause" id="btn-pause" onclick="pauseTimer()">Pause</button>
+      <button class="btn btn-reset" onclick="resetTimer()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Period -->
+  <div class="card period-section">
+    <div class="card-title">Period</div>
+    <div class="period-grid">
+      <button class="btn-period active" onclick="setPeriod('1st Half', this)">1st Half</button>
+      <button class="btn-period" onclick="setPeriod('Half Time', this)">Half Time</button>
+      <button class="btn-period" onclick="setPeriod('2nd Half', this)">2nd Half</button>
+      <button class="btn-period" onclick="setPeriod('Full Time', this)">Full Time</button>
+    </div>
+    <div style="margin-top:10px;">
+      <input type="text" id="custom-period" placeholder="Custom (e.g. Extra Time)" maxlength="20" style="margin-top:6px;">
+      <button onclick="setCustomPeriod()" style="margin-top:8px;width:100%;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">Apply Custom</button>
+    </div>
+  </div>
+
+  <!-- Visibility -->
+  <div class="card visibility-section">
+    <div class="card-title">Overlay Visibility</div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Scoreboard</div>
+        <div class="toggle-sub">Show/hide the score bar in OBS</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-scoreboard" checked onchange="pushState()">
+        <div class="toggle-slider"></div>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Match Timer</div>
+        <div class="toggle-sub">Show/hide the clock above the scorebar</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-timer" checked onchange="pushState()">
+        <div class="toggle-slider"></div>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">CAC Logo Watermark</div>
+        <div class="toggle-sub">Show/hide the CAC logo in the top-left</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-logo" checked onchange="pushState()">
+        <div class="toggle-slider"></div>
+      </label>
+    </div>
+
+  </div>
+
+</main>
+
+<div style="height:52px;"></div>
+
+<div id="status-bar">
+  <span class="ok">● CONNECTED</span>
+  <span class="info">— overlay updates every 250ms via localStorage</span>
+  <div class="spacer"></div>
+  <span class="info">Twitch: </span>
+  <a class="twitch-link" href="https://twitch.tv/cac_live" target="_blank">twitch.tv/cac_live</a>
+</div>
+
+<script>
+  const state = {
+    homeTeam: 'CAC',
+    awayTeam: 'AWAY',
+    homeScore: 0,
+    awayScore: 0,
+    time: '00:00',
+    period: '1st Half',
+    showScoreboard: true,
+    showTimer: true,
+    showLogo: true,
+  };
+
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let timerRunning = false;
+
+  // ── Push state to localStorage ──
+  function pushState() {
+    state.showScoreboard = document.getElementById('toggle-scoreboard').checked;
+    state.showTimer      = document.getElementById('toggle-timer').checked;
+    state.showLogo       = document.getElementById('toggle-logo').checked;
+    localStorage.setItem('cac_overlay', JSON.stringify(state));
+    updatePreview();
+  }
+
+  // ── Score ──
+  function adjustScore(team, delta) {
+    if (team === 'home') {
+      state.homeScore = Math.max(0, state.homeScore + delta);
+      document.getElementById('home-score-val').textContent = state.homeScore;
+    } else {
+      state.awayScore = Math.max(0, state.awayScore + delta);
+      document.getElementById('away-score-val').textContent = state.awayScore;
+    }
+    pushState();
+  }
+
+  function resetScore() {
+    state.homeScore = 0;
+    state.awayScore = 0;
+    document.getElementById('home-score-val').textContent = '0';
+    document.getElementById('away-score-val').textContent = '0';
+    pushState();
+  }
+
+  // ── Timer ──
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function timerToString(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return pad(m) + ':' + pad(s);
+  }
+
+  function startTimer() {
+    if (timerRunning) return;
+    timerRunning = true;
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const str = timerToString(timerSeconds);
+      state.time = str;
+      document.getElementById('timer-ctrl-display').textContent = str;
+      pushState();
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    timerRunning = false;
+    clearInterval(timerInterval);
+  }
+
+  function resetTimer() {
+    pauseTimer();
+    timerSeconds = 0;
+    state.time = '00:00';
+    document.getElementById('timer-ctrl-display').textContent = '00:00';
+    pushState();
+  }
+
+  // ── Period ──
+  function setPeriod(name, btn) {
+    document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.period = name;
+    pushState();
+  }
+
+  function setCustomPeriod() {
+    const val = document.getElementById('custom-period').value.trim();
+    if (!val) return;
+    document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+    state.period = val;
+    pushState();
+  }
+
+  // ── Team name inputs ──
+  document.getElementById('home-team-input').addEventListener('input', function() {
+    state.homeTeam = this.value || 'HOME';
+    document.getElementById('score-home-label').textContent = state.homeTeam.toUpperCase();
+    pushState();
+  });
+
+  document.getElementById('away-team-input').addEventListener('input', function() {
+    state.awayTeam = this.value || 'AWAY';
+    document.getElementById('score-away-label').textContent = state.awayTeam.toUpperCase();
+    pushState();
+  });
+
+  // ── Preview bar ──
+  function updatePreview() {
+    document.getElementById('prev-home-name').textContent  = state.homeTeam.toUpperCase();
+    document.getElementById('prev-away-name').textContent  = state.awayTeam.toUpperCase();
+    document.getElementById('prev-home-score').textContent = state.homeScore;
+    document.getElementById('prev-away-score').textContent = state.awayScore;
+  }
+
+  // Init
+  pushState();
+</script>
+</body>
+</html>
