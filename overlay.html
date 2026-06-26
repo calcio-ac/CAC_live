@@ -14,59 +14,62 @@
       overflow: hidden;
     }
 
-    /* ── CAC Logo watermark ── */
+    /* ── CAC Logo watermark — top right ── */
     #logo-wrap {
       position: absolute;
       top: 28px;
-      left: 36px;
+      right: 36px;
       opacity: 0.92;
       transition: opacity 0.3s;
     }
 
-    /* ── Timer pill above scorebar ── */
-    #timer-wrap {
+    /* ── Scoreboard + timer grouped top-left ── */
+    #overlay-group {
       position: absolute;
-      bottom: 120px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 30px;
+      left: 30px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
       gap: 0;
+    }
+
+    /* ── Scoreboard bar ── */
+    #scoreboard {
+      display: flex;
+      align-items: stretch;
+      border-radius: 6px 6px 0 0;
+      overflow: hidden;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+    }
+
+    /* ── Timer strip below scoreboard ── */
+    #timer-wrap {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
     }
 
     #period-label {
       background: #D4A820;
       color: #000;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      padding: 4px 18px 3px;
-      border-radius: 4px 4px 0 0;
+      padding: 6px 14px;
     }
 
     #timer-display {
       background: rgba(0, 0, 0, 0.88);
       color: #D4A820;
-      font-size: 34px;
+      font-size: 22px;
       font-weight: 900;
-      letter-spacing: 4px;
-      padding: 8px 28px;
-      border-radius: 0 0 4px 4px;
-    }
-
-    /* ── Scoreboard bar ── */
-    #scoreboard {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: stretch;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+      letter-spacing: 3px;
+      padding: 6px 20px;
     }
 
     .team-block {
@@ -130,8 +133,8 @@
     /* goal flash animation */
     @keyframes goalFlash {
       0%   { background: #fff200; }
-      50%  { background: #6BDB58; }
-      100% { background: #6BDB58; }
+      50%  { background: #D4A820; }
+      100% { background: #D4A820; }
     }
     .goal-flash { animation: goalFlash 1.2s ease-out; }
   </style>
@@ -147,26 +150,26 @@
     </svg>
   </div>
 
-  <!-- Timer -->
-  <div id="timer-wrap">
-    <div id="period-label">1st Half</div>
-    <div id="timer-display">00:00</div>
-  </div>
-
-  <!-- Scoreboard -->
-  <div id="scoreboard">
-    <div class="team-block home-block">
-      <div class="team-badge"></div>
-      <div class="team-name" id="home-name">ADLERS LOMBARD</div>
+  <!-- Scoreboard + Timer group (top-left) -->
+  <div id="overlay-group">
+    <div id="scoreboard">
+      <div class="team-block home-block">
+        <div class="team-badge"></div>
+        <div class="team-name" id="home-name">ADLERS LOMBARD</div>
+      </div>
+      <div class="score-block" id="score-block">
+        <span class="score-num" id="home-score">0</span>
+        <span class="score-sep">–</span>
+        <span class="score-num" id="away-score">0</span>
+      </div>
+      <div class="team-block away-block">
+        <div class="team-badge"></div>
+        <div class="team-name" id="away-name">AWAY</div>
+      </div>
     </div>
-    <div class="score-block" id="score-block">
-      <span class="score-num" id="home-score">0</span>
-      <span class="score-sep">–</span>
-      <span class="score-num" id="away-score">0</span>
-    </div>
-    <div class="team-block away-block">
-      <div class="team-badge"></div>
-      <div class="team-name" id="away-name">AWAY</div>
+    <div id="timer-wrap">
+      <div id="period-label">1st Half</div>
+      <div id="timer-display">00:00</div>
     </div>
   </div>
 
@@ -203,13 +206,13 @@
         if (d.period != null) document.getElementById('period-label').textContent = d.period;
 
         // Visibility
-        const scoreboard = document.getElementById('scoreboard');
-        const timerWrap  = document.getElementById('timer-wrap');
-        const logoWrap   = document.getElementById('logo-wrap');
+        const group    = document.getElementById('overlay-group');
+        const timerWrap = document.getElementById('timer-wrap');
+        const logoWrap  = document.getElementById('logo-wrap');
 
-        scoreboard.classList.toggle('hidden', d.showScoreboard === false);
-        timerWrap.classList.toggle('hidden',   d.showTimer     === false);
-        logoWrap.classList.toggle('hidden',    d.showLogo      === false);
+        group.classList.toggle('hidden',     d.showScoreboard === false);
+        timerWrap.classList.toggle('hidden', d.showTimer      === false);
+        logoWrap.classList.toggle('hidden',  d.showLogo       === false);
       } catch(e) {}
     }
 
